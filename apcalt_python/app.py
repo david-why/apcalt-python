@@ -70,7 +70,6 @@ def build_app(
     for route in ROUTES:
         app.add_url_rule(**route)
     app.register_error_handler(BusinessError, _error_handler)
-    app.process_response
     return app
 
 
