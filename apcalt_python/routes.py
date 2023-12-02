@@ -1,17 +1,18 @@
 import uuid
 from typing import Any, TypeVar, cast
 
-from quart import g, request, session
+from quart import g, request
 from quart.typing import RouteCallable
 
 from apcalt_python.apc.auth import APCAuth
 
+from .decorator import allow_anonymous
 from .exceptions import BusinessError
 from .log import get_logger as _logger
 
 CallableT = TypeVar('CallableT', bound=RouteCallable)
 
-__all__ = ['ROUTES', 'LOGIN_WHITELIST']
+__all__ = ['ROUTES']
 
 USER_AGENT = (
     'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/116.0'
@@ -19,7 +20,6 @@ USER_AGENT = (
 HEADERS = {'User-Agent': USER_AGENT}
 
 ROUTES = []
-LOGIN_WHITELIST = ['/auth/login', '/test']
 
 
 def route(rule: str, **kwargs: Any):
@@ -39,6 +39,7 @@ async def _auth() -> APCAuth:
 
 
 @route('/auth/login', methods=['POST'])
+@allow_anonymous
 async def auth_login():
     data = cast(dict, await request.json)
     username = data['username']
@@ -64,8 +65,22 @@ async def auth_me():
     return auth.data
 
 
-@route('/test')
-async def test():
-    session.setdefault('cnt', 0)
-    session['cnt'] += 1
-    return session['cnt']
+@route('/subjects')
+async def subjects():
+    auth = await _auth()
+    return await auth.api.get_subjects()
+
+
+@route('/subjects/<id>/courseOutline')
+async def subject_outline(id: str):
+    auth = await _auth()
+    return await auth.api.get_outline(id)
+
+
+@route('/subjects/<id>/videos/<url>:<vid>/finish')
+async def subject_video_finish(id: str, url: str, vid: str):
+    auth = await _auth()
+    ok = await auth.api.finish_video(url, vid)
+    if not ok:
+        raise BusinessError('Failed to finish video')
+    return {'code': 200}

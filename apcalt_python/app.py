@@ -4,12 +4,13 @@ from importlib import resources
 from typing import Any, cast
 
 import redis.asyncio
-from quart import Quart, abort, g, request, send_file, session
+from quart import Quart, abort, current_app, g, request, send_file, session
 from quart.typing import ResponseReturnValue
 from quart_session import Session
 
+from .decorator import allow_anonymous
 from .exceptions import BusinessError
-from .routes import LOGIN_WHITELIST, ROUTES
+from .routes import ROUTES
 
 __all__ = ['build_app']
 
@@ -25,6 +26,7 @@ class CustomQuart(Quart):
         return await super().make_response(rv)
 
 
+@allow_anonymous
 async def _static_route(path: str):
     parts = path.split('/')
     for part in parts:
@@ -37,6 +39,7 @@ async def _static_route(path: str):
         return await send_file(real_file)
 
 
+@allow_anonymous
 async def _home_route():
     return await _static_route('index.html')
 
@@ -49,7 +52,13 @@ async def _error_handler(error: BusinessError):
 
 
 async def _before_request():
-    if request.path not in LOGIN_WHITELIST and 'auth' not in session:
+    endpoint = request.endpoint
+    if endpoint is None:
+        return
+    view_func = current_app.view_functions.get(endpoint)
+    if view_func is None:
+        return
+    if not getattr(view_func, '__allow_anonymous__', False) and 'auth' not in session:
         raise BusinessError('Please login first', 401)
     if 'auth' in session:
         g.auth = session['auth']
