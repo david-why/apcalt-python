@@ -1,8 +1,8 @@
 import uuid
 from typing import Any, TypeVar, cast
 
-from flask import g, request
-from flask.typing import RouteCallable
+from quart import g, request, session
+from quart.typing import RouteCallable
 
 from apcalt_python.apc.auth import APCAuth
 
@@ -19,7 +19,7 @@ USER_AGENT = (
 HEADERS = {'User-Agent': USER_AGENT}
 
 ROUTES = []
-LOGIN_WHITELIST = ['/auth/login']
+LOGIN_WHITELIST = ['/auth/login', '/test']
 
 
 def route(rule: str, **kwargs: Any):
@@ -40,7 +40,7 @@ async def _auth() -> APCAuth:
 
 @route('/auth/login', methods=['POST'])
 async def auth_login():
-    data = cast(dict, request.json)
+    data = cast(dict, await request.json)
     username = data['username']
     password = data['password']
     auth = APCAuth()
@@ -62,3 +62,10 @@ async def auth_logout():
 async def auth_me():
     auth = await _auth()
     return auth.data
+
+
+@route('/test')
+async def test():
+    session.setdefault('cnt', 0)
+    session['cnt'] += 1
+    return session['cnt']

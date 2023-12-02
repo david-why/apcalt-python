@@ -7,14 +7,12 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-flask-session = {version = "^0.5.0"}
-flask = {extras = ["async"], version = "^3.0.0"}
 python-dotenv = "^1.0.0"
-gunicorn = "^21.2.0"
 redis = "^5.0.1"
 aiohttp = "^3.9.1"
 uvicorn = {extras = ["standard"], version = "^0.24.0.post1"}
-asgiref = "^3.7.2"
+quart = "^0.19.4"
+quart-session = "^3.0.0"
 
 
 [build-system]
