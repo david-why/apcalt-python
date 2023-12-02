@@ -3,15 +3,16 @@ from importlib import resources
 from typing import Any
 
 import redis
-from flask import Flask, Response, abort, send_file
+from asgiref.wsgi import WsgiToAsgi
+from flask import Flask, Response, abort, g, request, send_file, session
 from flask.typing import ResponseReturnValue
 from flask_session import Session
 
 from apcalt_python.exceptions import BusinessError
 
-from .routes import ROUTES
+from .routes import LOGIN_WHITELIST, ROUTES
 
-__all__ = ['build_app']
+__all__ = ['build_app', 'build_asgi']
 
 
 class CustomFlask(Flask):
@@ -48,6 +49,19 @@ def _error_handler(error: BusinessError):
     return data, error.code
 
 
+def _before_request():
+    if request.path not in LOGIN_WHITELIST and 'auth' not in session:
+        raise BusinessError('Please login first', 401)
+    if 'auth' in session:
+        g.auth = session['auth']
+
+
+def _after_request(response):
+    if 'auth' in g and g.auth.modified:
+        session['auth'] = g.auth
+    return response
+
+
 def build_app(
     name: str = __name__, extra_config: dict[str, Any] | None = None
 ) -> Flask:
@@ -69,8 +83,15 @@ def build_app(
     app.add_url_rule('/', view_func=_home_route)
     for route in ROUTES:
         app.add_url_rule(**route)
+    app.before_request(_before_request)
+    app.after_request(_after_request)
     app.register_error_handler(BusinessError, _error_handler)
     return app
+
+
+def build_asgi(name: str = __name__, extra_config: dict[str, Any] | None = None):
+    app = build_app(name=name, extra_config=extra_config)
+    return WsgiToAsgi(app)
 
 
 if __name__ == '__main__':
