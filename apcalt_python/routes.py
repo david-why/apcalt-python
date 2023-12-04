@@ -187,10 +187,34 @@ async def assignment_review_raw(subject_id: str, id: str):
     return assignment.data
 
 
-@_route('/subjects/<subject_id>/assignments/review/<id>')
+@_route('/subjects/<subject_id>/assignments/<id>/review')
 async def assignment_review(subject_id: str, id: str):
     auth = await _auth()
     return await auth.api.get_assignment_review(subject_id, id)
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/review/responses/raw')
+async def assignment_review_responses_raw(subject_id: str, id: str):
+    auth = await _auth()
+    return await auth.api.get_assignment_review_responses_raw(subject_id, id)
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/review/responses')
+async def assignment_review_responses(subject_id: str, id: str):
+    auth = await _auth()
+    return await auth.api.get_assignment_review_responses(subject_id, id)
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/review/report')
+async def assignment_review_report(subject_id: str, id: str):
+    auth = await _auth()
+    return await auth.api.get_assignment_review_report(subject_id, id)
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/review/answers')
+async def assignment_review_answers(subject_id: str, id: str):
+    auth = await _auth()
+    return await auth.api.get_assignment_review_answers(subject_id, id)
 
 
 @_route('/test')

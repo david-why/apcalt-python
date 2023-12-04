@@ -2,6 +2,8 @@ import json
 from math import ceil
 from typing import TYPE_CHECKING, Any
 
+from apcalt_python.learnosity.request import make_signed_request
+
 from ..decorator import cached
 from ..exceptions import BusinessError
 from ..learnosity.assignment import Assignment
@@ -120,8 +122,8 @@ class APClassroom:
         title = '[Unknown title]'
         if activity.get('title'):
             title = activity['title']
-        elif activity['quetsionsApiActivity'].get('title'):
-            title = activity['quetsionsApiActivity']['title']
+        elif activity['questionsApiActivity'].get('title'):
+            title = activity['questionsApiActivity']['title']
         return {'title': title, 'items': items}
 
     def _convert_responses(self, responses: Any):
@@ -221,3 +223,42 @@ class APClassroom:
         return self._convert_assignment(
             await self.get_assignment_review_raw(subject_id, id)
         )
+
+    async def get_assignment_review_responses_raw(self, subject_id: str, id: str):
+        assignment = await self.get_assignment_review_raw(subject_id, id)
+        return await assignment.get_responses()
+
+    async def get_assignment_review_responses(self, subject_id: str, id: str):
+        responses = await self.get_assignment_review_responses_raw(subject_id, id)
+        return self._convert_responses(responses)
+
+    async def get_assignment_review_report(self, subject_id: str, id: str):
+        data = await self._gql(
+            'assignment',
+            'query assignment($a:String,$s:String){assignment(assignmentId:$a){resultsByItem(studentId:$s)}}',
+            {'a': id, 's': str(self._auth.user_id)},
+        )
+        signed_request = json.loads(data['resultsByItem'])
+        report = await make_signed_request(
+            signed_request, 'https://reports-va.learnosity.com/v2023.2.LTS/init'
+        )
+        report = report['data'][0]['data']
+        for value in report.values():
+            report = value['users']
+            for value in report.values():
+                return value['items']
+        raise BusinessError('Failed to find report item')
+
+    async def get_assignment_review_answers(self, subject_id: str, id: str):
+        assignment = await self.get_assignment_review_raw(subject_id, id)
+        activity = assignment.data['data']['apiActivity']
+        answers = {}
+        for item in activity['items']:
+            for question in item['questions']:
+                response_id = question['response_id']
+                qtype = question['type']
+                if qtype == 'mcq':
+                    answers[response_id] = question['validation']['valid_response'][
+                        'value'
+                    ]
+        return answers

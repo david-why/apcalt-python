@@ -1,15 +1,16 @@
 import asyncio
-from copy import deepcopy
 import json
 import time
+from copy import deepcopy
 from typing import Any, Self
 
 from quart import current_app
 
-from apcalt_python.decorator import cached
-from apcalt_python.exceptions import BusinessError
-
-from ..request import USER_AGENT, get_session as _sess
+from ..decorator import cached
+from ..exceptions import BusinessError
+from ..request import USER_AGENT
+from ..request import get_session as _sess
+from .request import make_signed_request
 
 
 def _dumps(data):
@@ -299,14 +300,9 @@ class Assignment:
     async def from_signed_request(
         cls, signed_request: dict[str, Any], ensure_set: bool = True
     ) -> Self:
-        security = _dumps(signed_request['security'])
-        request = _dumps(signed_request['request'])
-        sess = _sess()
-        async with sess.post(
-            'https://items-va.learnosity.com/v2022.1.LTS/activity',
-            data={'action': 'get', 'security': security, 'request': request},
-        ) as r:
-            data = await r.json()
+        data = await make_signed_request(
+            signed_request, 'https://items-va.learnosity.com/v2022.1.LTS/activity'
+        )
         assignment = cls(data)
         if ensure_set:
             await assignment._ensure_set_responses()
