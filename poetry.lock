@@ -718,24 +718,6 @@ docs = ["pydata_sphinx_theme"]
 dotenv = ["python-dotenv"]
 
 [[package]]
-name = "quart-session"
-version = "3.0.0"
-description = "Adds server-side session support to your Quart application"
-optional = false
-python-versions = "*"
-files = [
-    {file = "Quart-Session-3.0.0.tar.gz", hash = "sha256:b9c466c705773f13141b210ac6b20381b667c6a518e7aa49bb134cdde80f3bb6"},
-]
-
-[package.dependencies]
-Quart = ">=0.19.0"
-
-[package.extras]
-dotenv = ["python-dotenv"]
-mongodb = ["motor (>=2.5.1)"]
-redis = ["redis (>=4.4.0)"]
-
-[[package]]
 name = "redis"
 version = "5.0.1"
 description = "Python client for Redis database and key-value store"
@@ -1138,4 +1120,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "ef7a4048cade98830e1890df66a852944acfcecc7ea760a22cbd85dfa6f6b9e6"
+content-hash = "1d75eb6034d4d7cba50bd14f18bfba04bd89c85fe1ca4520aa7d6b093755741c"

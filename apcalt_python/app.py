@@ -6,11 +6,11 @@ from typing import Any, cast
 import redis.asyncio
 from quart import Quart, abort, current_app, g, request, send_file, session
 from quart.typing import ResponseReturnValue
-from quart_session import Session
 
 from .decorator import allow_anonymous
 from .exceptions import BusinessError
 from .routes import ROUTES
+from .sessions import Session
 
 __all__ = ['build_app']
 
@@ -88,6 +88,7 @@ def build_app(
             app.config['SESSION_URI'], encoding='utf-8', decode_responses=False
         )
     app.config.setdefault('PERMANENT_SESSION_LIFETIME', timedelta(days=30))
+    # Session(app)
     Session(app)
     cast(Any, app.session_interface).serializer = pickle
     app.add_url_rule('/<path:path>', view_func=_static_route)
@@ -98,7 +99,3 @@ def build_app(
     app.after_request(_after_request)
     app.register_error_handler(BusinessError, _error_handler)
     return app
-
-
-if __name__ == '__main__':
-    app = build_app()

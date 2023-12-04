@@ -8,11 +8,6 @@ from ..log import get_logger as _logger
 from ..request import get_session
 from .api import APClassroom
 
-USER_AGENT = (
-    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/116.0'
-)
-HEADERS = {'User-Agent': USER_AGENT}
-
 
 class LoginData(TypedDict):
     cb_login: str
@@ -37,10 +32,14 @@ class APCAuth:
         self.data = self._default_data()
         self.modified = False
 
+    @property
+    def user_id(self):
+        return self.data['account']['id']
+
     async def login(self, username: str, password: str):
         self.data.update(self._default_data())
         self.modified = True
-        sess = await get_session()
+        sess = get_session()
         async with sess.get(
             'https://account.collegeboard.org/login/login?appId=366&idp=ECL&DURL=https://myap.collegeboard.org/login'
         ) as r:
@@ -93,7 +92,7 @@ class APCAuth:
             and self.data['aws_expire'] > datetime.now(timezone.utc)
         ):
             return
-        session = await get_session()
+        session = get_session()
         async with session.get(
             'https://sucred.catapult-prod.collegeboard.org/rel/temp-user-aws-creds',
             headers={'Authorization': 'CBLogin ' + self.data['cb_login']},
@@ -126,7 +125,7 @@ class APCAuth:
             self.data['account']['expires']
         ).replace(tzinfo=timezone.utc) > datetime.now(timezone.utc):
             return
-        sess = await get_session()
+        sess = get_session()
         async with sess.post(
             'https://am-accounts-production.collegeboard.org/account/api/',
             json={

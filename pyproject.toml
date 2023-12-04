@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "apcalt-python"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["david-why <david_why@outlook.com>"]
 readme = "README.md"
@@ -12,7 +12,7 @@ redis = "^5.0.1"
 aiohttp = "^3.9.1"
 uvicorn = {extras = ["standard"], version = "^0.24.0.post1"}
 quart = "^0.19.4"
-quart-session = "^3.0.0"
+aiofiles = "^23.2.1"
 
 
 [build-system]
