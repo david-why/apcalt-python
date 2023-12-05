@@ -24,7 +24,27 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.13.0
+
+      - name: Get full Node.js version
+        id: full-node-version
+        run: echo version=$(node --version) >> $GITHUB_OUTPUT
+  
+      - name: Setup Node.js cache
+        uses: actions/cache@v3
+        with:
+          path: client/node_modules
+          key: node_modules-${{ matrix.os }}-${{ steps.full-node-version.outputs.version }}-${{ hashFiles('client/**/package-lock.json') }}
+
+      - name: Compile client
+        run: make
+  
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -48,9 +68,8 @@ jobs:
       - name: Configure poetry
         run: poetry config virtualenvs.in-project true
 
-      - name: Setup cache
+      - name: Setup Python cache
         uses: actions/cache@v3
-        id: cache
         with:
           path: .venv
           key: venv-${{ matrix.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
