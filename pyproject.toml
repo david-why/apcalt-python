@@ -14,6 +14,12 @@ uvicorn = {extras = ["standard"], version = "^0.24.0.post1"}
 quart = "^0.19.4"
 aiofiles = "^23.2.1"
 
+[tool.poetry.group.actions]
+optional = true
+
+[tool.poetry.group.actions.dependencies]
+pyinstaller = "^6.2.0"
+
 [tool.poetry.group.dev]
 optional = true
 
