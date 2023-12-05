@@ -26,6 +26,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          token: ${{ secrets.FRONTEND_PAT }}
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
