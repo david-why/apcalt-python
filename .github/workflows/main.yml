@@ -1,0 +1,68 @@
+name: Package with PyInstaller
+on: [push]
+jobs:
+  package:
+    name: Packaging on ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [linux, windows, macos]
+        include:
+          - os: linux
+            runner: ubuntu-latest
+            zip_name: linux
+          - os: windows
+            runner: windows-latest
+            zip_name: windows
+          - os: macos
+            runner: macOS-latest
+            zip_name: macos
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Get full Python version
+        id: full-python-version
+        run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
+
+      - name: Install poetry
+        run: curl -sSL https://install.python-poetry.org | python - -y
+
+      - name: Update PATH
+        if: ${{ matrix.os != 'windows' }}
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Update PATH for Windows
+        if: ${{ matrix.os == 'windows' }}
+        run: echo "$APPDATA\Python\Scripts" >> $GITHUB_PATH
+
+      - name: Configure poetry
+        run: poetry config virtualenvs.in-project true
+
+      - name: Setup cache
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: .venv
+          key: venv-${{ matrix.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --with actions
+
+      - name: Run PyInstaller
+        run: poetry run pyinstaller -n apcalt-python apcalt_python/_entrypoint.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.zip_name }}
+          path: dist
