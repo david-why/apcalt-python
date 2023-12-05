@@ -59,7 +59,7 @@ jobs:
         run: poetry install --with actions
 
       - name: Run PyInstaller
-        run: poetry run pyinstaller -n apcalt-python apcalt_python/_entrypoint.py
+        run: poetry run pyinstaller -n apcalt-python --collect-all apcalt_python apcalt_python/_entrypoint.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
