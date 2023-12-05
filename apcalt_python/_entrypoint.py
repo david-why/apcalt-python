@@ -8,4 +8,8 @@ sys.argv[1:] = ['apcalt_python.__main__:app', '--host', '0.0.0.0', '--port', '80
 
 from apcalt_python.__main__ import app
 
+@app.before_serving
+def before_serving():
+    print('**** APCAlt has started! Please visit: http://localhost:8052 ****')
+
 main()
