@@ -2,3 +2,7 @@
 __pycache__
 
 /apcalt_python/static
+
+quart_store
+/build
+/dist

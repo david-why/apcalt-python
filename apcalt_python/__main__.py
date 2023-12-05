@@ -7,4 +7,7 @@ load_dotenv()
 app = build_app()
 
 if __name__ == '__main__':
-    app.run('0.0.0.0', 8052, debug=True, use_evalex=False)
+    app.before_serving(
+        lambda: print('**** APCAlt is up and running! http://localhost:8052 ****')
+    )
+    app.run('0.0.0.0', 8052)
