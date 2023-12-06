@@ -79,7 +79,12 @@ jobs:
         run: poetry install --with actions
 
       - name: Run PyInstaller
-        run: poetry run pyinstaller -n apcalt-python --collect-all apcalt_python apcalt_python/_entrypoint.py
+        if: ${{ matrix.os != 'macos' }}
+        run: poetry run pyinstaller -n apcalt-python --collect-all apcalt_python apcalt_python/_entrypoint.py -F
+
+      - name: Run PyInstaller for Mac OS
+        if: ${{ matrix.os == 'macos' }}
+        run: poetry run pyinstaller -n apcalt-python --collect-all apcalt_python apcalt_python/_entrypoint.py -F --target-arch universal2
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
