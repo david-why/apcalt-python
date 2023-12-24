@@ -550,6 +550,20 @@ files = [
 ]
 
 [[package]]
+name = "MarkupSafe"
+version = "2.1.3"
+description = "Safely add untrusted strings to HTML/XML markup."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "MarkupSafe-2.1.3-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:ad9e82fb8f09ade1c3e1b996a6337afac2b8b9e365f926f5a61aacc71adc5b3c"},
+]
+
+[package.source]
+type = "url"
+url = "https://files.pythonhosted.org/packages/fe/09/c31503cb8150cf688c1534a7135cc39bb9092f8e0e6369ec73494d16ee0e/MarkupSafe-2.1.3-cp311-cp311-macosx_10_9_universal2.whl"
+
+[[package]]
 name = "multidict"
 version = "6.0.4"
 description = "multidict implementation"
@@ -819,6 +833,20 @@ werkzeug = ">=3.0.0"
 [package.extras]
 docs = ["pydata_sphinx_theme"]
 dotenv = ["python-dotenv"]
+
+[[package]]
+name = "quart-cors"
+version = "0.7.0"
+description = "A Quart extension to provide Cross Origin Resource Sharing, access control, support"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "quart_cors-0.7.0-py3-none-any.whl", hash = "sha256:fa872cc94a2ae6b51a35b028ebca65c14069d7121d63a4caa3526ebbfb7c5a99"},
+    {file = "quart_cors-0.7.0.tar.gz", hash = "sha256:d667a0f13b4ce6d9e926489de5d819780844fbff5b2cdea156bd8867dd426a37"},
+]
+
+[package.dependencies]
+quart = ">=0.15"
 
 [[package]]
 name = "redis"
@@ -1239,4 +1267,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11, <3.12"
-content-hash = "9645e2e2cd4f3fa16b9ad0846e8bc8c3b723817d0ee7d5e7f4766d1f36c8922f"
+content-hash = "63490bac571d15459bdfbc65faec8f37b8817fc91361b51a546e72bb9c52d182"

@@ -6,6 +6,8 @@ from typing import Any, cast
 import redis.asyncio
 from quart import Quart, abort, current_app, g, request, send_file, session
 from quart.typing import ResponseReturnValue
+from quart_cors import cors
+from werkzeug.security import safe_join
 
 from .decorator import allow_anonymous
 from .exceptions import BusinessError
@@ -28,11 +30,10 @@ class CustomQuart(Quart):
 
 @allow_anonymous
 async def _static_route(path: str):
-    parts = path.split('/')
-    for part in parts:
-        if part.startswith('.') or part == '':
-            abort(404)
-    file = resources.files(__package__).joinpath('static').joinpath(path)
+    safe = safe_join('static', path)
+    if safe is None:
+        abort(404)
+    file = resources.files(__package__).joinpath(safe)
     if not file.is_file():
         abort(404)
     with resources.as_file(file) as real_file:
@@ -88,7 +89,7 @@ def build_app(
             app.config['SESSION_URI'], encoding='utf-8', decode_responses=False
         )
     app.config.setdefault('PERMANENT_SESSION_LIFETIME', timedelta(days=30))
-    # Session(app)
+    app = cors(app, allow_origin='*')
     Session(app)
     cast(Any, app.session_interface).serializer = pickle
     app.add_url_rule('/<path:path>', view_func=_static_route)

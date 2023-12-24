@@ -1,3 +1,4 @@
+import asyncio
 import os
 import pickle
 import time
@@ -50,6 +51,8 @@ class Session:
         interfaces: dict[str, Type[BaseSessionInterface]] = {
             'filesystem': FileSystemSessionInterface,
             'redis': RedisSessionInterface,
+            'memory': MemorySessionInterface,
+            'null': MemorySessionInterface,
         }
         if session_type in interfaces:
             session_interface = interfaces[session_type](config)
@@ -82,6 +85,7 @@ class Serializer(Protocol):
 
 class BaseSessionInterface(SessionInterface):
     session_class: ClassVar[Type[BaseSession]]
+    pickle_based: ClassVar[bool] = False
 
     def __init__(self, config: dict[str, Any]) -> None:
         self.config = config
@@ -261,3 +265,41 @@ class RedisSessionInterface(BaseSessionInterface):
 
     async def delete(self, key: str, app: Quart) -> None:
         await self.redis.delete(key)
+
+
+class MemorySession(BaseSession):
+    pass
+
+
+class MemorySessionInterface(BaseSessionInterface):
+    session_class = RedisSession
+
+    def __init__(self, config: dict[str, Any]) -> None:
+        super().__init__(config)
+        self._storage: dict[str, ExpiryData] = {}
+
+    def _check_expiry(self):
+        for key in frozenset(self._storage):
+            value = self._storage[key]
+            if value.expired:
+                del self._storage[key]
+
+    async def has(self, key: str, app: Quart):
+        return key in self._storage
+
+    async def get(self, key: str, app: Quart):
+        self._check_expiry()
+        value = self._storage.get(key)
+        if value is not None:
+            return value.data
+
+    async def set(
+        self, key: str, value: Any, app: Quart, expiry: int | None = None
+    ) -> None:
+        self._check_expiry()
+        expiry_data = ExpiryData(value, expiry)
+        self._storage[key] = expiry_data
+
+    async def delete(self, key: str, app: Quart) -> None:
+        if key in self._storage:
+            del self._storage[key]
