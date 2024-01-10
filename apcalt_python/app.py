@@ -4,7 +4,7 @@ from importlib import resources
 from typing import Any, cast
 
 import redis.asyncio
-from quart import Quart, abort, current_app, g, request, send_file, session
+from quart import Quart, Response, abort, current_app, g, request, send_file, session
 from quart.typing import ResponseReturnValue
 from quart_cors import cors
 from werkzeug.security import safe_join
@@ -53,6 +53,8 @@ async def _error_handler(error: BusinessError):
 
 
 async def _before_request():
+    if request.method == 'OPTIONS':
+        return Response(status=200)
     endpoint = request.endpoint
     if endpoint is None:
         return
