@@ -1,6 +1,7 @@
 import pickle
 from datetime import timedelta
 from importlib import resources
+import re
 from typing import Any, cast
 
 import redis.asyncio
@@ -91,7 +92,7 @@ def build_app(
             app.config['SESSION_URI'], encoding='utf-8', decode_responses=False
         )
     app.config.setdefault('PERMANENT_SESSION_LIFETIME', timedelta(days=30))
-    app = cors(app, allow_origin='*')
+    app = cors(app, allow_credentials=True, allow_origin=[re.compile(r'.*')])
     Session(app)
     cast(Any, app.session_interface).serializer = pickle
     app.add_url_rule('/<path:path>', view_func=_static_route)

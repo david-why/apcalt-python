@@ -185,7 +185,7 @@ class Assignment:
         elif isinstance(value, list):
             response = {'value': value, 'type': 'array'}
         elif isinstance(value, dict):
-            response = {'value': value}
+            response = {'value': value, 'type': 'object'}
         if isinstance(response, dict):
             response.setdefault('apiVersion', 'v2.181.16')
             response.setdefault('revision', 1)

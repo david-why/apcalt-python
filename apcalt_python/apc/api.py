@@ -107,6 +107,7 @@ class APClassroom:
                     'metadata': question['metadata'],
                     'stimulus': question['stimulus'],
                     'allowMultiple': question.get('multiple_responses', False),
+                    'title': question.get('title'),
                 }
                 if shared_passage is not None:
                     qdata['sharedPassage'] = shared_passage
@@ -262,3 +263,111 @@ class APClassroom:
                         'value'
                     ]
         return answers
+
+    @cached(lambda self, _, id: f'scoregql.{id}.{self._auth.user_id}', 60 * 30)
+    async def get_scoring_gql(self, subject_id: str, id: str):
+        data = await self._gql(
+            'assignmentScoringByRubric',
+            'query assignmentScoringByRubric($u:String,$a:String){assignmentScoringByRubric(studentId:$u,assignmentId:$a,isImpersonating:false){studentSessionReviewSignedRequest scoringRubricSignedRequest rubricCategoryReferencesByQuestion}}',
+            {'u': self._auth.user_id, 'a': id},
+        )
+        return data
+
+    @cached(lambda self, _, id: f'sassignment.{id}.{self._auth.user_id}', 60 * 30)
+    async def get_scoring_raw(self, subject_id: str, id: str):
+        gql = await self.get_scoring_gql(subject_id, id)
+        return await Assignment.from_signed_request(
+            json.loads(gql['studentSessionReviewSignedRequest']), ensure_set=False
+        )
+
+    async def get_scoring(self, subject_id: str, id: str):
+        return self._convert_assignment(await self.get_scoring_raw(subject_id, id))
+
+    async def get_scoring_responses_raw(self, subject_id: str, id: str):
+        assignment = await self.get_scoring_raw(subject_id, id)
+        return await assignment.get_responses()
+
+    async def get_scoring_responses(self, subject_id: str, id: str):
+        responses = await self.get_scoring_responses_raw(subject_id, id)
+        return self._convert_responses(responses)
+
+    async def get_scoring_categories(self, subject_id: str, id: str):
+        gql = await self.get_scoring_gql(subject_id, id)
+        return json.loads(gql['rubricCategoryReferencesByQuestion'])
+
+    @cached(lambda self, _, id: f'rubric.{id}.{self._auth.user_id}', 60 * 30)
+    async def get_scoring_rubric_raw(self, subject_id: str, id: str):
+        gql = await self.get_scoring_gql(subject_id, id)
+        return await Assignment.from_signed_request(
+            json.loads(gql['scoringRubricSignedRequest'])
+        )
+
+    async def get_scoring_rubric(self, subject_id: str, id: str):
+        return self._convert_assignment(
+            await self.get_scoring_rubric_raw(subject_id, id)
+        )
+
+    async def get_scoring_rubric_responses_raw(self, subject_id: str, id: str):
+        assignment = await self.get_scoring_rubric_raw(subject_id, id)
+        return await assignment.get_responses()
+
+    async def get_scoring_rubric_responses(self, subject_id: str, id: str):
+        responses = await self.get_scoring_rubric_responses_raw(subject_id, id)
+        return self._convert_responses(responses)
+
+    async def set_scoring_rubric_responses(
+        self, subject_id: str, id: str, responses: list[dict[str, Any]]
+    ):
+        assignment = await self.get_scoring_rubric_raw(subject_id, id)
+        return await assignment.set_responses(responses)
+
+    async def submit_scoring(self, subject_id: str, id: str):
+        assignment = await self.get_scoring(subject_id, id)
+        categories = await self.get_scoring_categories(subject_id, id)
+        rubric = await self.get_scoring_rubric(subject_id, id)
+        responses = await self.get_scoring_rubric_responses(subject_id, id)
+        scores = []
+        for itemref, refs in categories.items():
+            for item in assignment['items']:
+                if item['reference'] == itemref:
+                    break
+            else:
+                continue
+            respid = item['questions'][0]['responseId']
+            max_score = 0
+            score = 0
+            for ref in refs:
+                for item in rubric['items']:
+                    if item['reference'] == ref:
+                        break
+                else:
+                    continue
+                max_score += item['questions'][0]['options'][0]['max_score']
+                score += int(
+                    responses.get(item['questions'][0]['responseId'], {}).get(
+                        'score', 0
+                    )
+                )
+            scores.append(
+                {
+                    'response_id': respid,
+                    'score': score,
+                    'max_score': max_score,
+                    'attempted': True,
+                }
+            )
+        # print(scores)
+        # raise BusinessError('not finished')
+        data = await self._gql(
+            'updateScores',
+            'mutation updateScores($a:String,$s:String,$c:String){updateScores(assignmentId:$a,studentId:$s,scores:$c,scoringCompleted:true){ok}}',
+            {
+                'a': id,
+                's': self._auth.user_id,
+                'c': json.dumps(scores, separators=(',', ':')),
+            },
+        )
+        if data is None or not data.get('ok', False):
+            raise BusinessError('Failed to update scores')
+        rubricass = await self.get_scoring_rubric_raw(subject_id, id)
+        return await rubricass.submit()

@@ -3,7 +3,7 @@ from functools import wraps
 from typing import Any, Awaitable, Callable, TypeVar, cast
 
 from quart import g, request, session
-from quart.typing import RouteCallable
+from quart.typing import RouteCallable, ResponseReturnValue
 
 from apcalt_python.apc.auth import APCAuth
 
@@ -12,6 +12,7 @@ from .exceptions import BusinessError
 from .log import get_logger as _logger
 
 CallableT = TypeVar('CallableT', bound=RouteCallable)
+AsyncRouteCallable = Callable[..., Awaitable[ResponseReturnValue]]
 
 __all__ = ['ROUTES']
 
@@ -28,11 +29,13 @@ def _route(rule: str, **kwargs: Any) -> Callable[[CallableT], CallableT]:
 
 def _flag(
     fail_msg: str | None = None, fail_code: int = 500
-) -> Callable[[Callable[..., Awaitable[bool]]], RouteCallable]:
-    def decorator(func: Callable[..., Awaitable[bool]]) -> RouteCallable:
+) -> Callable[[Callable[..., Awaitable[Any]]], AsyncRouteCallable]:
+    def decorator(func: Callable[..., Awaitable[Any]]) -> AsyncRouteCallable:
         @wraps(func)
         async def inner(*args, **kwargs):
             res = await func(*args, **kwargs)
+            if not isinstance(res, bool):
+                return res
             if res:
                 return {'code': 200}
             raise BusinessError(fail_msg, fail_code)
@@ -215,6 +218,85 @@ async def assignment_review_report(subject_id: str, id: str):
 async def assignment_review_answers(subject_id: str, id: str):
     auth = await _auth()
     return await auth.api.get_assignment_review_answers(subject_id, id)
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/scoring/gql')
+async def scoring_gql(subject_id: str, id: str):
+    auth = await _auth()
+    return await auth.api.get_scoring_gql(subject_id, id)
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/scoring/raw')
+async def scoring_raw(subject_id: str, id: str):
+    auth = await _auth()
+    assignment = await auth.api.get_scoring_raw(subject_id, id)
+    return assignment.data
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/scoring')
+async def scoring(subject_id: str, id: str):
+    auth = await _auth()
+    return await auth.api.get_scoring(subject_id, id)
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/scoring/responses/raw')
+async def scoring_responses_raw(subject_id: str, id: str):
+    auth = await _auth()
+    return await auth.api.get_scoring_responses_raw(subject_id, id)
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/scoring/responses')
+async def scoring_responses(subject_id: str, id: str):
+    auth = await _auth()
+    return await auth.api.get_scoring_responses(subject_id, id)
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/scoring/categories')
+async def scoring_categories(subject_id: str, id: str):
+    auth = await _auth()
+    return await auth.api.get_scoring_categories(subject_id, id)
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/scoring/rubric/raw')
+async def scoring_rubric_raw(subject_id: str, id: str):
+    auth = await _auth()
+    assignment = await auth.api.get_scoring_rubric_raw(subject_id, id)
+    return assignment.data
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/scoring/rubric')
+async def scoring_rubric(subject_id: str, id: str):
+    auth = await _auth()
+    return await auth.api.get_scoring_rubric(subject_id, id)
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/scoring/rubric/responses/raw')
+async def scoring_rubric_responses_raw(subject_id: str, id: str):
+    auth = await _auth()
+    return await auth.api.get_scoring_rubric_responses_raw(subject_id, id)
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/scoring/rubric/responses')
+async def scoring_rubric_responses(subject_id: str, id: str):
+    auth = await _auth()
+    return await auth.api.get_scoring_rubric_responses(subject_id, id)
+
+
+@_route(
+    '/subjects/<subject_id>/assignments/<id>/scoring/rubric/responses', methods=['PUT']
+)
+@_flag('Failed to save responses')
+async def scoring_rubric_responses_put(subject_id: str, id: str):
+    auth = await _auth()
+    responses = await request.json
+    return await auth.api.set_scoring_rubric_responses(subject_id, id, responses)
+
+
+@_route('/subjects/<subject_id>/assignments/<id>/scoring/submit', methods=['POST'])
+@_flag('Failed to submit scoring')
+async def submit_scoring(subject_id: str, id: str):
+    auth = await _auth()
+    return await auth.api.submit_scoring(subject_id, id)
 
 
 @_route('/test')
