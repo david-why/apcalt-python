@@ -99,11 +99,14 @@ class Assignment:
             new_response = self._convert_response(response['response'])
             if prev_response is None and new_response is None:
                 continue
-            if prev_response and new_response.get('value') == prev_response.get(
+            if isinstance(prev_response, dict) and new_response.get(
                 'value'
-            ):
+            ) == prev_response.get('value'):
                 continue
-            if prev_response and prev_response.get('revision') is not None:
+            if (
+                isinstance(prev_response, dict)
+                and prev_response.get('revision') is not None
+            ):
                 prev_revision = prev_response['revision']
                 if isinstance(new_response, dict):
                     new_response['revision'] = prev_revision + 1
@@ -208,7 +211,9 @@ class Assignment:
             response = self._find_response(
                 responses, question['response_id'], additional
             )
-            attempted = response and response.get('value')
+            attempted = response and (
+                not isinstance(response, dict) or response.get('value')
+            )
             meta_item = {
                 'reference': item['reference'],
                 'source': item.get('source'),

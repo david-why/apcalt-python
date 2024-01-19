@@ -130,9 +130,11 @@ class APClassroom:
     def _convert_responses(self, responses: Any):
         data = {}
         for response in responses:
-            data[response['response_id']] = (response.get('response') or {}).get(
-                'value'
-            )
+            print(response)
+            value = response.get('response') or {}
+            if isinstance(value, str):
+                value = json.loads(value)
+            data[response['response_id']] = value.get('value')
         return data
 
     async def list_assignments(self, subject_id: str, status: str = 'assigned'):
@@ -356,8 +358,6 @@ class APClassroom:
                     'attempted': True,
                 }
             )
-        # print(scores)
-        # raise BusinessError('not finished')
         data = await self._gql(
             'updateScores',
             'mutation updateScores($a:String,$s:String,$c:String){updateScores(assignmentId:$a,studentId:$s,scores:$c,scoringCompleted:true){ok}}',
