@@ -3,6 +3,7 @@ __pycache__
 
 /apcalt_python/static
 
+/example/
 quart_store
 /build
 /dist

@@ -9,7 +9,7 @@ from quart import Quart
 from quart.sessions import SecureCookieSession, SessionInterface
 from quart.sessions import SessionMixin
 from quart.sessions import SessionMixin as SessionMixin
-from quart.wrappers import BaseRequestWebsocket, Response
+from quart.wrappers import BaseRequestWebsocket
 from quart.wrappers.response import Response as QuartResponse
 from redis import asyncio as aioredis
 from werkzeug.wrappers import Response as WerkzeugResponse
