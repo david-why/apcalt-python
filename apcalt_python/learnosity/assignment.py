@@ -212,7 +212,7 @@ class Assignment:
                 responses, question['response_id'], additional
             )
             attempted = response and (
-                not isinstance(response, dict) or response.get('value')
+                not isinstance(response, dict) or response.get('value') is not None
             )
             meta_item = {
                 'reference': item['reference'],

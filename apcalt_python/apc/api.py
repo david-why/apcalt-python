@@ -2,11 +2,10 @@ import json
 from math import ceil
 from typing import TYPE_CHECKING, Any
 
-from apcalt_python.learnosity.request import make_signed_request
-
 from ..decorator import cached
 from ..exceptions import BusinessError
 from ..learnosity.assignment import Assignment
+from ..learnosity.request import make_signed_request
 from ..log import get_logger as _logger
 from ..request import get_session as _sess
 
@@ -70,7 +69,7 @@ class APClassroom:
             'mutation storeDailyVideoProgress($u:Int,$v:Int,$c:String,$p:String) {storeDailyVideoProgress(userId:$u,videoId:$v,status:\"COMPLETE\",cbPersonid:$c,progress:$p,watchedPercentage:\"1.00\",playTimePercentage:\"0.0\"){ok}}',
             {'u': user_id, 'v': video_id, 'c': cb_person_id, 'p': progress},
         )
-        return ok is not None and ok.get('ok', False)
+        return ok is not None
 
     async def get_signed_url(self, bucket: str, key: str) -> str:
         sess = _sess()

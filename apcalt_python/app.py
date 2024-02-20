@@ -1,7 +1,7 @@
 import pickle
+import re
 from datetime import timedelta
 from importlib import resources
-import re
 from typing import Any, cast
 
 import redis.asyncio

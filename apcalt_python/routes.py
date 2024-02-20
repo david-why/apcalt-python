@@ -107,7 +107,7 @@ async def subject_outline(id: str):
     return await auth.api.get_outline(id)
 
 
-@_route('/subjects/<id>/videos/<url>:<vid>/finish')
+@_route('/subjects/<id>/videos/<url>:<vid>/finish', methods=['POST'])
 @_flag('Failed to finish video')
 async def subject_video_finish(id: str, url: str, vid: str):
     auth = await _auth()
