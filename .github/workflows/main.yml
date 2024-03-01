@@ -1,5 +1,7 @@
 name: Package with PyInstaller
-on: [push]
+on:
+  push:
+  workflow_dispatch:
 jobs:
   package:
     name: Packaging on ${{ matrix.os }}
