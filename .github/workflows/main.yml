@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [linux, windows, macos]
+        os: [linux, windows, macos-x86_64]
         include:
           - os: linux
             runner: ubuntu-latest
@@ -15,12 +15,18 @@ jobs:
           - os: windows
             runner: windows-latest
             zip_name: windows
-          - os: macos
+          - os: macos-arm64
+            target_arch: arm64
+            shell: arch -arm64 bash {0}
             runner: macOS-latest
-            zip_name: macos
+            zip_name: macos-arm64
+          - os: macos-x86_64
+            target_arch: x86_64
+            runner: macOS-latest
+            zip_name: macos-x86_64
     defaults:
       run:
-        shell: bash
+        shell: ${{ matrix.shell || 'bash {0}' }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -36,7 +42,7 @@ jobs:
       - name: Get full Node.js version
         id: full-node-version
         run: echo version=$(node --version) >> $GITHUB_OUTPUT
-  
+
       - name: Setup Node.js cache
         uses: actions/cache@v3
         with:
@@ -45,7 +51,7 @@ jobs:
 
       - name: Compile client
         run: make
-  
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -79,12 +85,12 @@ jobs:
         run: poetry install --with actions
 
       - name: Run PyInstaller
-        if: ${{ matrix.os != 'macos' }}
+        if: ${{ matrix.runner != 'macOS-latest' }}
         run: poetry run pyinstaller -n apcalt-python --collect-all apcalt_python apcalt_python/_entrypoint.py -F
 
       - name: Run PyInstaller for Mac OS
-        if: ${{ matrix.os == 'macos' }}
-        run: poetry run pyinstaller -n apcalt-python --collect-all apcalt_python apcalt_python/_entrypoint.py -F --target-arch universal2
+        if: ${{ matrix.runner == 'macOS-latest' }}
+        run: poetry run pyinstaller -n apcalt-python --collect-all apcalt_python apcalt_python/_entrypoint.py -F --target-arch ${{ matrix.target_arch }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
