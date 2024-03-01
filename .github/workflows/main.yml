@@ -10,41 +10,40 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: Check cached client dist
-        id: check_client
-        uses: actions/cache@v3
-        with:
-          path: apcalt_python/static
-          key: client-static-${{ hashFiles('client/**') }}
-
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
           submodules: recursive
           token: ${{ secrets.FRONTEND_PAT }}
-        if: steps.check_client.outputs.cache-hit != 'true'
+
+      - name: Setup client dist cache
+        id: client_cache
+        uses: actions/cache@v3
+        with:
+          path: apcalt_python/static
+          key: client-static-${{ hashFiles('client/**') }}
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
           node-version: 18.13.0
-        if: steps.check_client.outputs.cache-hit != 'true'
+        if: steps.client_cache.outputs.cache-hit != 'true'
 
       - name: Get Node.js version
         id: node_version
         run: echo version=$(node --version) >> $GITHUB_OUTPUT
-        if: steps.check_client.outputs.cache-hit != 'true'
+        if: steps.client_cache.outputs.cache-hit != 'true'
 
       - name: Setup Node.js cache
         uses: actions/cache@v3
         with:
           path: client/node_modules
           key: client-node_modules-${{ steps.node_version.outputs.version }}-${{ hashFiles('client/**/package-lock.json') }}
-        if: steps.check_client.outputs.cache-hit != 'true'
+        if: steps.client_cache.outputs.cache-hit != 'true'
 
       - name: Compile client
         run: make
-        if: steps.check_client.outputs.cache-hit != 'true'
+        if: steps.client_cache.outputs.cache-hit != 'true'
 
       # - name: Save client dist
       #   uses: actions/cache/save@v3
