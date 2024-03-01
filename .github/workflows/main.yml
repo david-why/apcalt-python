@@ -17,11 +17,11 @@ jobs:
           - os: windows
             runner: windows-latest
             zip_name: windows
-          - os: macos-arm64
-            target_arch: arm64
-            shell: arch -arm64 bash {0}
-            runner: macOS-latest
-            zip_name: macos-arm64
+          # - os: macos-arm64
+          #   target_arch: arm64
+          #   shell: arch -arm64 bash {0}
+          #   runner: macOS-latest
+          #   zip_name: macos-arm64
           - os: macos-x86_64
             target_arch: x86_64
             runner: macOS-latest
