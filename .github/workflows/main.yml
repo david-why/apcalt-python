@@ -3,9 +3,59 @@ on:
   push:
   workflow_dispatch:
 jobs:
-  package:
-    name: Packaging on ${{ matrix.os }}
+  build-client:
+    name: Build client
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check cached client dist
+        id: check_client
+        uses: actions/cache@v3
+        with:
+          path: apcalt_python/static
+          key: client-static-${{ hashFiles('client/**') }}
+
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.FRONTEND_PAT }}
+        if: steps.check_client.outputs.cache-hit != 'true'
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.13.0
+        if: steps.check_client.outputs.cache-hit != 'true'
+
+      - name: Get Node.js version
+        id: node_version
+        run: echo version=$(node --version) >> $GITHUB_OUTPUT
+        if: steps.check_client.outputs.cache-hit != 'true'
+
+      - name: Setup Node.js cache
+        uses: actions/cache@v3
+        with:
+          path: client/node_modules
+          key: client-node_modules-${{ steps.node_version.outputs.version }}-${{ hashFiles('client/**/package-lock.json') }}
+        if: steps.check_client.outputs.cache-hit != 'true'
+
+      - name: Compile client
+        run: make
+        if: steps.check_client.outputs.cache-hit != 'true'
+
+      # - name: Save client dist
+      #   uses: actions/cache/save@v3
+      #   with:
+      #     path: apcalt_python/static
+      #     key: client-static-$ {{ hashFiles('client/**') }}
+
+  build:
+    name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.runner }}
+    needs: build-client
     strategy:
       fail-fast: false
       matrix:
@@ -28,7 +78,7 @@ jobs:
             zip_name: macos-x86_64
     defaults:
       run:
-        shell: ${{ matrix.shell || 'bash {0}' }}
+        shell: bash
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -36,23 +86,16 @@ jobs:
           submodules: recursive
           token: ${{ secrets.FRONTEND_PAT }}
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v4
+      - name: Load client dist
+        id: load_client
+        uses: actions/cache/restore@v3
         with:
-          node-version: 18.13.0
+          path: apcalt_python/static
+          key: client-static-${{ hashFiles('client/**') }}
 
-      - name: Get full Node.js version
-        id: full-node-version
-        run: echo version=$(node --version) >> $GITHUB_OUTPUT
-
-      - name: Setup Node.js cache
-        uses: actions/cache@v3
-        with:
-          path: client/node_modules
-          key: node_modules-${{ matrix.os }}-${{ steps.full-node-version.outputs.version }}-${{ hashFiles('client/**/package-lock.json') }}
-
-      - name: Compile client
-        run: make
+      - name: Check client dist loaded
+        run: exit 1
+        if: steps.load_client.outputs.cache-hit != 'true'
 
       - name: Setup Python
         uses: actions/setup-python@v4
