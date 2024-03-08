@@ -13,10 +13,7 @@ aiohttp = "^3.9.1"
 uvicorn = {extras = ["standard"], version = "^0.24.0.post1"}
 quart = "^0.19.4"
 aiofiles = "^23.2.1"
-markupsafe = [
-    {markers = "sys_platform == 'darwin'", url = "https://files.pythonhosted.org/packages/fe/09/c31503cb8150cf688c1534a7135cc39bb9092f8e0e6369ec73494d16ee0e/MarkupSafe-2.1.3-cp311-cp311-macosx_10_9_universal2.whl"},
-    {markers = "sys_platform != 'darwin'", version = "^2.1.3", source = "pypi"}
-]
+markupsafe = "^2.1.3"
 quart-cors = "^0.7.0"
 
 [tool.poetry.group.actions]
