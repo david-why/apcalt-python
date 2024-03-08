@@ -4,8 +4,17 @@ on:
   workflow_dispatch:
 jobs:
   build-client:
-    name: Build client
-    runs-on: ubuntu-latest
+    name: Build client on ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, windows]
+        include:
+          - os: ubuntu
+            runner: ubuntu-latest
+          - os: windows
+            runner: windows-latest
     defaults:
       run:
         shell: bash
@@ -21,7 +30,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: apcalt_python/static
-          key: client-static-${{ hashFiles('client/**') }}
+          key: client-static-${{ matrix.os }}-${{ hashFiles('client/**') }}
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
@@ -45,12 +54,6 @@ jobs:
         run: make
         if: steps.client_cache.outputs.cache-hit != 'true'
 
-      # - name: Save client dist
-      #   uses: actions/cache/save@v3
-      #   with:
-      #     path: apcalt_python/static
-      #     key: client-static-$ {{ hashFiles('client/**') }}
-
   build:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.runner }}
@@ -63,9 +66,11 @@ jobs:
           - os: linux
             runner: ubuntu-latest
             zip_name: linux
+            client_key: ubuntu
           - os: windows
             runner: windows-latest
             zip_name: windows
+            client_key: windows
           # - os: macos-arm64
           #   target_arch: arm64
           #   shell: arch -arm64 bash {0}
@@ -75,15 +80,11 @@ jobs:
             target_arch: x86_64
             runner: macOS-latest
             zip_name: macos-x86_64
+            client_key: ubuntu
     defaults:
       run:
         shell: bash
     steps:
-      - name: Turn off core.autocrlf
-        run: |
-          git config --global core.autocrlf false
-          git config --global core.eol lf
-
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -95,7 +96,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: apcalt_python/static
-          key: client-static-${{ hashFiles('client/**') }}
+          key: client-static-${{ matrix.client_key }}-${{ hashFiles('client/**') }}
 
       - name: Check client dist loaded
         run: exit 1
