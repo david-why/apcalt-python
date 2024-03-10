@@ -136,11 +136,11 @@ jobs:
 
       - name: Run PyInstaller
         if: ${{ matrix.runner != 'macOS-latest' }}
-        run: poetry run pyinstaller -n apcalt-python --collect-all apcalt_python apcalt_python/_entrypoint.py -F
+        run: poetry run pyinstaller -n ${{ matrix.os }}-apcalt-python --collect-all apcalt_python apcalt_python/_entrypoint.py -F
 
       - name: Run PyInstaller for Mac OS
         if: ${{ matrix.runner == 'macOS-latest' }}
-        run: poetry run pyinstaller -n apcalt-python --collect-all apcalt_python apcalt_python/_entrypoint.py -F --target-arch ${{ matrix.target_arch }}
+        run: poetry run pyinstaller -n ${{ matrix.os }}-apcalt-python --collect-all apcalt_python apcalt_python/_entrypoint.py -F --target-arch ${{ matrix.target_arch }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
