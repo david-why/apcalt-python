@@ -10,13 +10,20 @@ This is a website on which you can view your AP Classroom, complete your assignm
 
 ## Instructions for use
 
-Download the latest GitHub Actions build for your OS, unzip it, and run it. Now visit http://localhost:8052, and voila!
+1. Download the file corresponding to your operating system from [the nightly build](https://github.com/david-why/apcalt-python/releases/tag/nightly).
+2. If you are on Mac OS, you need to make the downloaded file **executable**. To do this, open up a terminal, and type:
+   ```
+   cd Downloads
+   chmod +x macos-x86_64-apcalt-python
+   ```
+   If your file is not saved in the Downloads folder, replace `Downloads` in the command above with the folder where the downloaded file is saved.
+3. Run the downloaded application.
+4. Open http://localhost:8052 and have fun!
 
 ## Running from source
 
-It's not suggested to do this; the Actions artifacts work for most people. But if you want to, basically:
+It's not suggested to do this; the steps above work for most people. But if you want to, basically:
 1. Make sure that you have Python 3.11 and Poetry installed on your system.
 2. Clone the repository with `git clone https://github.com/david-why/apcalt-python --recurse-submodules`.
-3. Run `make` in the project root.
-4. Run `poetry install` in the project root.
-5. Run `python3.11 apcalt_python/_entrypoint.py` to start APCAlt.
+3. Run `make` and then `poetry install` in the project root.
+4. Run `python apcalt_python/_entrypoint.py` to start APCAlt.
