@@ -2,7 +2,7 @@ import uuid
 from functools import wraps
 from typing import Any, Awaitable, Callable, TypeVar, cast
 
-from quart import g, request, session
+from quart import Response, g, request, session
 from quart.typing import RouteCallable, ResponseReturnValue
 
 from apcalt_python.apc.auth import APCAuth
@@ -297,6 +297,12 @@ async def scoring_rubric_responses_put(subject_id: str, id: str):
 async def submit_scoring(subject_id: str, id: str):
     auth = await _auth()
     return await auth.api.submit_scoring(subject_id, id)
+
+
+@_route('/health')
+@allow_anonymous
+async def health():
+    return Response(status=200)
 
 
 @_route('/test')
