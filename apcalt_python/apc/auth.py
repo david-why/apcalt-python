@@ -1,11 +1,12 @@
 from datetime import datetime, timezone
 from typing import Any, TypedDict
 
+from aiohttp import ClientSession
 from yarl import URL
 
 from ..exceptions import BusinessError
 from ..log import get_logger as _logger
-from ..request import get_session
+from ..request import HEADERS, get_session
 from .api import APClassroom
 
 
@@ -39,46 +40,46 @@ class APCAuth:
     async def login(self, username: str, password: str):
         self.data.update(self._default_data())
         self.modified = True
-        sess = get_session()
-        async with sess.get(
-            'https://account.collegeboard.org/login/login?appId=366&idp=ECL&DURL=https://myap.collegeboard.org/login'
-        ) as r:
-            t = await r.text()
-        if r.status == 403:
-            _logger().error('Login returned 403, is this IP address banned?: %s', t)
-            raise BusinessError('Cannot login to APC')
-        if '"stateToken":' not in t:
-            _logger().error('State token not found: %s', t)
-        start_idx = t.index('"stateToken":') + 14
-        end_idx = t.index('"', start_idx)
-        state_token = t[start_idx:end_idx]
-        while r'\x' in state_token:
-            idx = state_token.index(r'\x')
-            c = chr(int(state_token[idx + 2 : idx + 4], 16))
-            state_token = state_token[:idx] + c + state_token[idx + 4 :]
-        async with sess.post(
-            'https://prod.idp.collegeboard.org/api/v1/authn',
-            json={
-                'username': username,
-                'password': password,
-                'stateToken': state_token,
-                'options': {
-                    'warnBeforePasswordExpired': False,
-                    'multiOptionalFactorEnroll': False,
+        async with ClientSession(headers=HEADERS) as sess:
+            async with sess.get(
+                'https://account.collegeboard.org/login/login?appId=366&idp=ECL&DURL=https://myap.collegeboard.org/login'
+            ) as r:
+                t = await r.text()
+            if r.status == 403:
+                _logger().error('Login returned 403, is this IP address banned?: %s', t)
+                raise BusinessError('Cannot login to APC')
+            if '"stateToken":' not in t:
+                _logger().error('State token not found: %s', t)
+            start_idx = t.index('"stateToken":') + 14
+            end_idx = t.index('"', start_idx)
+            state_token = t[start_idx:end_idx]
+            while r'\x' in state_token:
+                idx = state_token.index(r'\x')
+                c = chr(int(state_token[idx + 2 : idx + 4], 16))
+                state_token = state_token[:idx] + c + state_token[idx + 4 :]
+            async with sess.post(
+                'https://prod.idp.collegeboard.org/api/v1/authn',
+                json={
+                    'username': username,
+                    'password': password,
+                    'stateToken': state_token,
+                    'options': {
+                        'warnBeforePasswordExpired': False,
+                        'multiOptionalFactorEnroll': False,
+                    },
                 },
-            },
-        ) as r:
-            authn = await r.json()
-        if 'next' not in authn['_links']:
-            _logger().error('No next link in authn response: %s', authn)
-            raise BusinessError('Failed to login to APC')
-        next_link = authn['_links']['next']['href']
-        async with sess.get(next_link) as r:
-            t = await r.text()
-        cookies = sess.cookie_jar.filter_cookies(URL('https://www.collegeboard.org'))
-        if 'cb_login' not in cookies:
-            _logger().error('No cb_login cookie found: %s: %s', cookies, t)
-        self.data['cb_login'] = cookies['cb_login'].value
+            ) as r:
+                authn = await r.json()
+            if 'next' not in authn['_links']:
+                _logger().error('No next link in authn response: %s', authn)
+                raise BusinessError('Failed to login to APC')
+            next_link = authn['_links']['next']['href']
+            async with sess.get(next_link) as r:
+                t = await r.text()
+            cookies = sess.cookie_jar.filter_cookies(URL('https://www.collegeboard.org'))
+            if 'cb_login' not in cookies:
+                _logger().error('No cb_login cookie found: %s: %s', cookies, t)
+            self.data['cb_login'] = cookies['cb_login'].value
         await self.ensure_aws()
 
     async def logout(self):
