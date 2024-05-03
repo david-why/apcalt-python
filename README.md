@@ -12,16 +12,19 @@ This is a website on which you can view your AP Classroom, complete your assignm
 
 1. Download the file corresponding to your operating system from [the nightly build](https://github.com/david-why/apcalt-python/releases/tag/nightly).
 2. **IMPORTANT:** If you are on Mac OS, you need to make the downloaded file **executable**. To do this, open up a terminal, and type:
+
+   ```sh
+   chmod +x Downloads/macos-*-apcalt-python
    ```
-   chmod +x Downloads/macos-x86_64-apcalt-python
-   ```
+
    and then press enter. If your file is not saved in the Downloads folder, replace `Downloads` in the command above with the folder where the downloaded file is saved.
 3. Run the downloaded application.
-4. Open http://localhost:8052 and have fun!
+4. Open [http://localhost:8052](http://localhost:8052) and have fun!
 
 ## Running from source
 
 It's not suggested to do this; the steps above work for most people. But if you want to, basically:
+
 1. Make sure that you have Python 3.11 and Poetry installed on your system.
 2. Clone the repository with `git clone https://github.com/david-why/apcalt-python --recurse-submodules`.
 3. Run `make` and then `poetry install` in the project root.
