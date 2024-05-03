@@ -832,6 +832,20 @@ files = [
 ]
 
 [[package]]
+name = "PyYAML"
+version = "6.0.1"
+description = "YAML parser and emitter for Python"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "PyYAML-6.0.1-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:a6581cf35be215409ca6fbd4ad4d6638a1292a66c37f3727235223a0d219d2d4"},
+]
+
+[package.source]
+type = "url"
+url = "https://gist.githubusercontent.com/david-why/64d4e6ecc896c71a361bad982807406c/raw/d5e9d8510f6eb243f75c5befe5bc3457baeef0fc/PyYAML-6.0.1-cp311-cp311-macosx_10_9_universal2.whl"
+
+[[package]]
 name = "quart"
 version = "0.19.5"
 description = "A Python ASGI web microframework with the same API as Flask"
@@ -1073,6 +1087,23 @@ files = [
 anyio = ">=3.0.0"
 
 [[package]]
+name = "watchfiles"
+version = "0.21.0"
+description = "Simple, modern and high performance file watching and code reload in python."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "watchfiles-0.21.0-cp311-cp311-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:daa6e292e3c9f7bc29bb5e2cbffacba9a056e76edfa625a0681b893234363dfa"},
+]
+
+[package.dependencies]
+anyio = ">=3.0.0"
+
+[package.source]
+type = "url"
+url = "https://gist.githubusercontent.com/david-why/946f7bfd0953fb7dcead860a37c0dcbd/raw/99f26eb76f57d424bae98c18096d4a1d928303b3/watchfiles-0.21.0-cp311-cp311-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl"
+
+[[package]]
 name = "websockets"
 version = "12.0"
 description = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
@@ -1290,4 +1321,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11, <3.12"
-content-hash = "6e2a41598a15e82149f24355f51eb21e3748e18024278bbc758415e879528e1f"
+content-hash = "f95e1d665164d45501432d111f35f92eac68ae147f4438a5bec37142160cb387"

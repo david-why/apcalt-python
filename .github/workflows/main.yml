@@ -61,7 +61,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [linux, windows, macos-x86_64]
+        os: [linux, windows, macos]
         include:
           - os: linux
             runner: ubuntu-latest
@@ -71,16 +71,16 @@ jobs:
             runner: windows-latest
             zip_name: windows
             client_key: windows
-          - os: macos-x86_64
-            target_arch: x86_64
-            shell: arch -x86_64 bash {0}
+          # - os: macos-x86_64
+          #   target_arch: x86_64
+          #   shell: arch -x86_64 bash {0}
+          #   runner: macOS-latest
+          #   zip_name: macos-x86_64
+          #   client_key: ubuntu
+          - os: macos
+            target_arch: universal2
             runner: macOS-latest
-            zip_name: macos-x86_64
-            client_key: ubuntu
-          - os: macos-arm64
-            target_arch: arm64
-            runner: macOS-latest
-            zip_name: macos-arm64
+            zip_name: macos
             client_key: ubuntu
     defaults:
       run:
@@ -113,7 +113,14 @@ jobs:
         run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
 
       - name: Install poetry
-        run: curl -sSL https://install.python-poetry.org | python - -y
+        run: curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.2 python - -y
+
+      - name: A little hackery for MacOS
+        if: ${{ matrix.os == 'macos' }}
+        run: |
+          sed -ie 's/return chosen/open("output.log","a").write(str(chosen)+"\\n");return chosen/' ~/Library/Application\ Support/pypoetry/venv/lib/python3.*/site-packages/poetry/installation/chooser.py
+          sed -ie 's/chosen =/self._env.supported_tags.sort(key=lambda x:"universal2" not in str(x));chosen =/' ~/Library/Application\ Support/pypoetry/venv/lib/python3.*/site-packages/poetry/installation/chooser.py
+          sed -ie 's/return (/open("output.log","a").write(str((link,has_allowed_hash,yank_value,binary_preference,package.version,build_tag,pri))+"\\n");return (/'  ~/Library/Application\ Support/pypoetry/venv/lib/python3.*/site-packages/poetry/installation/chooser.py
 
       - name: Update PATH
         if: ${{ matrix.os != 'windows' }}
@@ -134,6 +141,9 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --with actions
+
+      - if: ${{ matrix.os == 'macos' }}
+        run: cat output.log
 
       - name: Run PyInstaller
         if: ${{ matrix.runner != 'macOS-latest' }}

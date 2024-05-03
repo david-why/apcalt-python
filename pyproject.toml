@@ -16,6 +16,15 @@ aiofiles = "^23.2.1"
 markupsafe = "^2.1.3"
 quart-cors = "^0.7.0"
 
+watchfiles = [
+    { markers = "sys_platform == 'darwin'", url = "https://gist.githubusercontent.com/david-why/946f7bfd0953fb7dcead860a37c0dcbd/raw/99f26eb76f57d424bae98c18096d4a1d928303b3/watchfiles-0.21.0-cp311-cp311-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl" },
+    { markers = "sys_platform != 'darwin'", version = "*", source = "pypi" }
+]
+pyyaml = [
+    { markers = "sys_platform == 'darwin'", url = "https://gist.githubusercontent.com/david-why/64d4e6ecc896c71a361bad982807406c/raw/d5e9d8510f6eb243f75c5befe5bc3457baeef0fc/PyYAML-6.0.1-cp311-cp311-macosx_10_9_universal2.whl" },
+    { markers = "sys_platform != 'darwin'", version = "*", source = "pypi" }
+]
+
 [tool.poetry.group.actions]
 optional = true
 
