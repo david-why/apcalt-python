@@ -11,12 +11,11 @@ This is a website on which you can view your AP Classroom, complete your assignm
 ## Instructions for use
 
 1. Download the file corresponding to your operating system from [the nightly build](https://github.com/david-why/apcalt-python/releases/tag/nightly).
-2. If you are on Mac OS, you need to make the downloaded file **executable**. To do this, open up a terminal, and type:
+2. **IMPORTANT:** If you are on Mac OS, you need to make the downloaded file **executable**. To do this, open up a terminal, and type:
    ```
-   cd Downloads
-   chmod +x macos-x86_64-apcalt-python
+   chmod +x Downloads/macos-x86_64-apcalt-python
    ```
-   If your file is not saved in the Downloads folder, replace `Downloads` in the command above with the folder where the downloaded file is saved.
+   and then press enter. If your file is not saved in the Downloads folder, replace `Downloads` in the command above with the folder where the downloaded file is saved.
 3. Run the downloaded application.
 4. Open http://localhost:8052 and have fun!
 
