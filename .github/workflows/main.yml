@@ -27,7 +27,7 @@ jobs:
 
       - name: Setup client dist cache
         id: client_cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: apcalt_python/static
           key: client-static-${{ matrix.os }}-${{ hashFiles('client/**') }}
@@ -44,7 +44,7 @@ jobs:
         if: steps.client_cache.outputs.cache-hit != 'true'
 
       - name: Setup Node.js cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: client/node_modules
           key: client-node_modules-${{ steps.node_version.outputs.version }}-${{ hashFiles('client/**/package-lock.json') }}
@@ -121,13 +121,22 @@ jobs:
         run: poetry config virtualenvs.in-project true
 
       - name: Setup Python cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .venv
           key: venv-${{ matrix.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
         run: poetry install --with actions
+
+      - name: Setup PyInstaller cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            build
+            dist
+            apcalt-python-*.spec
+          key: pyinstaller-${{ matrix.os }}
 
       - name: Run PyInstaller
         if: ${{ matrix.os != 'macos' }}
