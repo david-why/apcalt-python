@@ -78,7 +78,7 @@ def build_app(
     name: str = __name__, extra_config: dict[str, Any] | None = None
 ) -> Quart:
     app = CustomQuart(name, static_folder=None)
-    app.config.from_prefixed_env()
+    app.config.from_prefixed_env('FLASK')
     if extra_config:
         app.config.update(extra_config)
     if app.config.get('SESSION_TYPE', 'null') == 'null':
