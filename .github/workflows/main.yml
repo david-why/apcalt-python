@@ -65,26 +65,16 @@ jobs:
         include:
           - os: linux
             runner: ubuntu-latest
-            zip_name: linux
             client_key: ubuntu
           - os: windows
             runner: windows-latest
-            zip_name: windows
             client_key: windows
-          # - os: macos-x86_64
-          #   target_arch: x86_64
-          #   shell: arch -x86_64 bash {0}
-          #   runner: macOS-latest
-          #   zip_name: macos-x86_64
-          #   client_key: ubuntu
           - os: macos
-            target_arch: universal2
             runner: macOS-latest
-            zip_name: macos
             client_key: ubuntu
     defaults:
       run:
-        shell: ${{ matrix.shell || 'bash' }}
+        shell: bash
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -117,10 +107,7 @@ jobs:
 
       - name: A little hackery for MacOS
         if: ${{ matrix.os == 'macos' }}
-        run: |
-          sed -ie 's/return chosen/open("output.log","a").write(str(chosen)+"\\n");return chosen/' ~/Library/Application\ Support/pypoetry/venv/lib/python3.*/site-packages/poetry/installation/chooser.py
-          sed -ie 's/chosen =/self._env.supported_tags.sort(key=lambda x:"universal2" not in str(x));chosen =/' ~/Library/Application\ Support/pypoetry/venv/lib/python3.*/site-packages/poetry/installation/chooser.py
-          sed -ie 's/return (/open("output.log","a").write(str((link,has_allowed_hash,yank_value,binary_preference,package.version,build_tag,pri))+"\\n");return (/'  ~/Library/Application\ Support/pypoetry/venv/lib/python3.*/site-packages/poetry/installation/chooser.py
+        run: sed -ie 's/chosen =/self._env.supported_tags.sort(key=lambda x:"universal2" not in str(x));chosen =/' ~/Library/Application\ Support/pypoetry/venv/lib/python3.*/site-packages/poetry/installation/chooser.py
 
       - name: Update PATH
         if: ${{ matrix.os != 'windows' }}
@@ -142,19 +129,20 @@ jobs:
       - name: Install dependencies
         run: poetry install --with actions
 
-      - if: ${{ matrix.os == 'macos' }}
-        run: cat output.log
-
       - name: Run PyInstaller
-        if: ${{ matrix.runner != 'macOS-latest' }}
-        run: poetry run pyinstaller -n ${{ matrix.os }}-apcalt-python --collect-all apcalt_python apcalt_python/_entrypoint.py -F
+        if: ${{ matrix.os != 'macos' }}
+        run: poetry run pyinstaller -n apcalt-python-${{ matrix.os }} --collect-all apcalt_python apcalt_python/_entrypoint.py -F
 
       - name: Run PyInstaller for Mac OS
-        if: ${{ matrix.runner == 'macOS-latest' }}
-        run: poetry run pyinstaller -n ${{ matrix.os }}-apcalt-python --collect-all apcalt_python apcalt_python/_entrypoint.py -F --target-arch ${{ matrix.target_arch }}
+        if: ${{ matrix.os == 'macos' }}
+        run: poetry run pyinstaller -n apcalt-python-${{ matrix.os }} --collect-all apcalt_python apcalt_python/_entrypoint.py -F --target-arch universal2
+
+      - name: Add executable bit
+        if: ${{ matrix.os != 'windows' }}
+        run: chmod +x dist/*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.zip_name }}
+          name: apcalt-python-${{ matrix.os }}
           path: dist

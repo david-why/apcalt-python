@@ -45,7 +45,7 @@ jobs:
       - name: Release nightly build
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "windows/*,linux/*,macos-x86_64/*,macos-arm64/*"
+          artifacts: "apcalt-python-*/*"
           removeArtifacts: true
           tag: nightly
           commit: ${{ steps.get-run-id.outputs.commit }}
