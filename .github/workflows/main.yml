@@ -167,13 +167,10 @@ jobs:
         uses: actions/download-artifact@v4
 
       - name: Release nightly build
-        uses: ncipollo/release-action@v1
+        uses: marvinpinto/action-automatic-releases@latest
         with:
-          artifacts: "apcalt-python-*/*"
-          removeArtifacts: true
-          tag: nightly
-          commit: ${{ github.sha }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic_release_tag: nightly
           prerelease: true
-          allowUpdates: true
-          name: Nightly Release
-          body: Automatic nightly release from GitHub Actions
+          title: Nightly Release
+          files: apcalt-python-*/*
