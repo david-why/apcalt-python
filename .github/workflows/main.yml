@@ -177,4 +177,4 @@ jobs:
           automatic_release_tag: nightly
           prerelease: true
           title: Nightly Release
-          files: apcalt-python*.*
+          files: apcalt-python-*/*
