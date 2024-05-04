@@ -1,4 +1,4 @@
-name: Package with PyInstaller
+name: Package with cx_Freeze
 on:
   push:
   workflow_dispatch:
@@ -66,12 +66,18 @@ jobs:
           - os: linux
             runner: ubuntu-latest
             client_key: ubuntu
+            cxfreeze_cmd: bdist_appimage
+            dist_path: dist/apcalt-python*.AppImage
           - os: windows
             runner: windows-latest
             client_key: windows
+            cxfreeze_cmd: build_exe
+            dist_path: build/apcalt-python/apcalt-python.exe
           - os: macos
             runner: macOS-latest
             client_key: ubuntu
+            cxfreeze_cmd: bdist_mac
+            dist_path: build/apcalt-python.dmg
     defaults:
       run:
         shell: bash
@@ -127,34 +133,31 @@ jobs:
           key: venv-${{ matrix.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
-        run: poetry install --with actions
+        run: poetry install --with dev
 
-      - name: Setup PyInstaller cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            build
-            dist
-            apcalt-python-*.spec
-          key: pyinstaller-${{ matrix.os }}
+      - name: Run cx_Freeze
+        run: poetry run cxfreeze ${{ matrix.cxfreeze_cmd }}
 
-      - name: Run PyInstaller
-        if: ${{ matrix.os != 'macos' }}
-        run: poetry run pyinstaller -n apcalt-python-${{ matrix.os }} --collect-all apcalt_python apcalt_python/_entrypoint.py -F
-
-      - name: Run PyInstaller for Mac OS
+      - name: Create DMG for MacOS
         if: ${{ matrix.os == 'macos' }}
-        run: poetry run pyinstaller -n apcalt-python-${{ matrix.os }} --collect-all apcalt_python apcalt_python/_entrypoint.py -F --target-arch universal2
-
-      - name: Add executable bit
-        if: ${{ matrix.os != 'windows' }}
-        run: chmod +x dist/*
+        run: |
+          mv build/apcalt-python.app/Contents/MacOS/apcalt-python{,-bin}
+          cat > build/apcalt-python.app/Contents/MacOS/apcalt-python << EOF
+          #!/bin/bash
+          cd "\$(dirname "\$0")"
+          open -a Terminal.app apcalt-python-bin
+          EOF
+          chmod +x build/apcalt-python.app/Contents/MacOS/apcalt-python
+          mkdir build/dist
+          cp -r build/apcalt-python.app build/dist/APCAlt.app
+          ln -s /Applications build/dist/Applications
+          hdiutil create -fs HFSX -format UDZO build/apcalt-python.dmg -imagekey zlib-level=9 -srcfolder build/dist -volname "APCAlt Installer"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: apcalt-python-${{ matrix.os }}
-          path: dist
+          path: ${{ matrix.dist_path }}
 
   release:
     name: Publish nightly release
@@ -164,14 +167,6 @@ jobs:
       contents: write
       actions: read
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.11
-          cache: pip
-
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
@@ -182,4 +177,4 @@ jobs:
           automatic_release_tag: nightly
           prerelease: true
           title: Nightly Release
-          files: apcalt-python-*/*
+          files: apcalt-python*.*
