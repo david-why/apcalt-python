@@ -67,7 +67,7 @@ jobs:
             runner: ubuntu-latest
             client_key: ubuntu
             cxfreeze_cmd: bdist_appimage
-            dist_path: dist/apcalt-python*.AppImage
+            dist_path: dist/apcalt-python.AppImage
           - os: windows
             runner: windows-latest
             client_key: windows

@@ -56,3 +56,6 @@ packages = ["uvicorn"]
 
 [tool.cxfreeze.bdist_mac]
 bundle_name = "apcalt-python"
+
+[tool.cxfreeze.bdist_appimage]
+target_name = "apcalt-python.AppImage"
