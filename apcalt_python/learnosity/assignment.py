@@ -241,6 +241,7 @@ class Assignment:
         }
 
     async def _ensure_set_responses(self):
+        print('&&&', self.data)
         sess = _sess()
         auth_data = await self.get_question_auth()
         cid = auth_data['id']
