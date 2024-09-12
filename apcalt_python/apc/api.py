@@ -129,7 +129,7 @@ class APClassroom:
     def _convert_responses(self, responses: Any):
         data = {}
         for response in responses:
-            print(response)
+            # print(response)
             value = response.get('response') or {}
             if isinstance(value, str):
                 value = json.loads(value)
