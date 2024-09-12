@@ -7,7 +7,7 @@ __all__ = ['make_signed_request']
 
 
 def _dumps(data):
-    return json.dumps(data, separators=(',', ':'))
+    return json.dumps(data, separators=(',', ':'), ensure_ascii=False)
 
 
 async def make_signed_request(signed_request: dict[str, Any], url: str):
