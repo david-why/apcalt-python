@@ -14,9 +14,16 @@ async def make_signed_request(signed_request: dict[str, Any], url: str):
     security = _dumps(signed_request['security'])
     request = _dumps(signed_request['request'])
     print('warning signed request', signed_request)
+    print('error', security)
+    print('error', request)
     sess = _sess()
     async with sess.post(
-        url, data={'action': 'get', 'security': security, 'request': request}
+        url,
+        data={'action': 'get', 'security': security, 'request': request},
+        headers={
+            'Origin': 'https://apclassroom.collegeboard.org',
+            'Referer': 'https://apclassroom.collegeboard.org/',
+        },
     ) as r:
         data = await r.json()
         print('warning signed result', data)
